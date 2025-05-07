@@ -6,6 +6,7 @@ import com.lightsout.solver.DFSSolver;
 import com.lightsout.solver.BFSSolver;
 import com.lightsout.solver.Solver;
 import com.lightsout.solver.Solver.Move;
+import com.lightsout.solver.GaussianSolver;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -60,7 +61,7 @@ public class LightsOutGUI extends JFrame {
         
         // Solver selection
         JComboBox<String> solverSelect = new JComboBox<>(new String[]{
-            "Random Search", "Depth-First Search", "Breadth-First Search"
+            "Random Search", "Depth-First Search", "Breadth-First Search", "Gaussian Elimination"
         });
         solverSelect.setBackground(new Color(120, 120, 120));
         solverSelect.setForeground(Color.WHITE);
@@ -89,6 +90,9 @@ public class LightsOutGUI extends JFrame {
                     break;
                 case "Breadth-First Search":
                     solver = new BFSSolver();
+                    break;
+                case "Gaussian Elimination":
+                    solver = new GaussianSolver();
                     break;
             }
             solverSelect.setSelectedItem(selected);
