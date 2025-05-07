@@ -15,6 +15,7 @@ import java.util.List;
 
 public class LightsOutGUI extends JFrame {
     private final Board board;
+    private Board savedBoardState;
     private final JButton[][] buttons;
     private final int size;
     private static final Color LIGHT_ON = new Color(255, 255, 0);  // Bright yellow
@@ -225,6 +226,20 @@ public class LightsOutGUI extends JFrame {
             solutionTimer.stop();
         }
         isSolving = false;
+        
+        // Restore the saved board state
+        if (savedBoardState != null) {
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    // Toggle the cell if it differs from the saved state
+                    if (board.getCell(i, j) != savedBoardState.getCell(i, j)) {
+                        board.toggleLight(i, j);
+                    }
+                }
+            }
+            updateButtons();
+            savedBoardState = null;  // Clear the saved state
+        }
     }
 
     private void solve() {
@@ -232,6 +247,8 @@ public class LightsOutGUI extends JFrame {
             return;
         }
 
+        // Save current board state before solving
+        savedBoardState = board.copy();
         List<Move> solution = solver.solve(board);
         
         if (solution == null) {
