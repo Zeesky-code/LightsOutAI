@@ -6,47 +6,63 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * A simple solver that uses random search to find a solution.
- * This is not optimal but serves as a good starting point for the project.
+ * A solver that uses random search to find a solution.
+ * Uses MoveHistory to track attempts and avoid repeating unsuccessful sequences.
  */
 public class RandomSearchSolver implements Solver {
-    private static final int MAX_ATTEMPTS = 1000;
-    private static final int MAX_MOVES = 25;
     private final Random random = new Random();
+    private final SolverConfig config;
+    private final MoveHistory moveHistory;
+
+    public RandomSearchSolver() {
+        this(SolverConfig.getDefault());
+    }
+
+    public RandomSearchSolver(SolverConfig config) {
+        this.config = config;
+        this.moveHistory = new MoveHistory(config.getMaxAttempts());
+    }
 
     @Override
     public List<Move> solve(Board board) {
+        long startTime = System.currentTimeMillis();
         Board workingBoard = board.copy();
-        List<Move> bestSolution = new ArrayList<>();
-        int bestLightsOn = countLightsOn(workingBoard);
+        List<Move> currentMoves = new ArrayList<>();
 
-        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            Board tempBoard = board.copy();
-            List<Move> moves = new ArrayList<>();
-            
-            for (int move = 0; move < MAX_MOVES; move++) {
+        for (int attempt = 0; attempt < config.getMaxAttempts(); attempt++) {
+            if (System.currentTimeMillis() - startTime > config.getTimeoutMillis()) {
+                break;
+            }
+
+            workingBoard = board.copy();
+            currentMoves.clear();
+
+            // Try to find a solution within the move limit
+            for (int move = 0; move < config.getMaxMovesPerAttempt(); move++) {
                 int row = random.nextInt(board.getSize());
                 int col = random.nextInt(board.getSize());
-                
-                tempBoard.toggleLight(row, col);
-                moves.add(new Move(row, col));
-                
-                int currentLightsOn = countLightsOn(tempBoard);
-                
-                if (currentLightsOn == 0) {
-                    return moves;
+                Move newMove = new Move(row, col);
+
+                currentMoves.add(newMove);
+                if (!config.isAllowRepeatMoves() && moveHistory.hasTriedSequence(currentMoves)) {
+                    currentMoves.remove(currentMoves.size() - 1);
+                    continue;
                 }
+
+                workingBoard.toggleLight(row, col);
                 
-                // Keep track of the best partial solution
-                if (currentLightsOn < bestLightsOn) {
-                    bestLightsOn = currentLightsOn;
-                    bestSolution = new ArrayList<>(moves);
+                int remainingLights = countLightsOn(workingBoard);
+                if (remainingLights == 0) {
+                    moveHistory.recordAttempt(currentMoves, 0);
+                    return currentMoves; // Return only complete solutions
                 }
+
+                // Record attempt for tracking purposes
+                moveHistory.recordAttempt(new ArrayList<>(currentMoves), remainingLights);
             }
         }
 
-        // Return the best partial solution if no complete solution was found
-        return bestSolution;
+        return null; // No solution found within attempt limit
     }
 
     private int countLightsOn(Board board) {

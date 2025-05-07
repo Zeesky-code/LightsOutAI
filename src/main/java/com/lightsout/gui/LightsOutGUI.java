@@ -187,7 +187,7 @@ public class LightsOutGUI extends JFrame {
 
         List<Move> solution = solver.solve(board);
         
-        if (solution.isEmpty()) {
+        if (solution == null) {
             JOptionPane.showMessageDialog(this, 
                 "No solution found! Try running the solver again or use a different solving method.");
             return;
@@ -211,7 +211,7 @@ public class LightsOutGUI extends JFrame {
                             "Puzzle solved in " + solution.size() + " moves!");
                     } else {
                         JOptionPane.showMessageDialog(LightsOutGUI.this,
-                            "Partial solution found. Try running the solver again!");
+                            "Solution did not solve the puzzle. Try running the solver again!");
                     }
                 }
             }
