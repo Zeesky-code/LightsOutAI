@@ -2,6 +2,8 @@ package com.lightsout.gui;
 
 import com.lightsout.model.Board;
 import com.lightsout.solver.RandomSearchSolver;
+import com.lightsout.solver.DFSSolver;
+import com.lightsout.solver.BFSSolver;
 import com.lightsout.solver.Solver;
 import com.lightsout.solver.Solver.Move;
 
@@ -37,9 +39,9 @@ public class LightsOutGUI extends JFrame {
     }
 
     private void setupUI() {
-        JPanel gamePanel = new JPanel(new GridLayout(size, size, 5, 5)); // Add gaps between buttons
+        JPanel gamePanel = new JPanel(new GridLayout(size, size, 5, 5));
         gamePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        gamePanel.setBackground(new Color(32, 32, 32)); // Dark background
+        gamePanel.setBackground(new Color(32, 32, 32));
 
         // Create the grid of buttons
         for (int row = 0; row < size; row++) {
@@ -50,10 +52,46 @@ public class LightsOutGUI extends JFrame {
             }
         }
 
-        // Control panel
-        JPanel controlPanel = new JPanel();
-        controlPanel.setBackground(new Color(48, 48, 48)); // Slightly lighter than background
+        // Control panel with better organization
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
+        controlPanel.setBackground(new Color(48, 48, 48));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Solver selection
+        JComboBox<String> solverSelect = new JComboBox<>(new String[]{
+            "Random Search", "Depth-First Search", "Breadth-First Search"
+        });
+        solverSelect.setBackground(new Color(120, 120, 120));
+        solverSelect.setForeground(Color.WHITE);
+        ((JTextField)solverSelect.getEditor().getEditorComponent()).setBackground(new Color(120, 120, 120));
+        solverSelect.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (isSelected) {
+                    c.setBackground(new Color(160, 160, 160));
+                } else {
+                    c.setBackground(new Color(120, 120, 120));
+                }
+                c.setForeground(Color.WHITE);
+                return c;
+            }
+        });
+        solverSelect.addActionListener(e -> {
+            String selected = (String) solverSelect.getSelectedItem();
+            switch (selected) {
+                case "Random Search":
+                    solver = new RandomSearchSolver();
+                    break;
+                case "Depth-First Search":
+                    solver = new DFSSolver();
+                    break;
+                case "Breadth-First Search":
+                    solver = new BFSSolver();
+                    break;
+            }
+            solverSelect.setSelectedItem(selected);
+        });
         
         JButton newGameButton = new JButton("New Game");
         JButton solveButton = new JButton("Solve");
@@ -68,6 +106,15 @@ public class LightsOutGUI extends JFrame {
         solveButton.addActionListener(e -> solve());
         resetButton.addActionListener(e -> stopSolving());
 
+        // Add components to control panel with labels
+        JPanel solverPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        solverPanel.setBackground(controlPanel.getBackground());
+        JLabel solverLabel = new JLabel("Solver: ");
+        solverLabel.setForeground(Color.WHITE);
+        solverPanel.add(solverLabel);
+        solverPanel.add(solverSelect);
+        
+        controlPanel.add(solverPanel);
         controlPanel.add(newGameButton);
         controlPanel.add(solveButton);
         controlPanel.add(resetButton);
@@ -228,7 +275,7 @@ public class LightsOutGUI extends JFrame {
         }
         
         SwingUtilities.invokeLater(() -> {
-            LightsOutGUI gui = new LightsOutGUI(5);
+            LightsOutGUI gui = new LightsOutGUI(3);
             gui.setVisible(true);
         });
     }
